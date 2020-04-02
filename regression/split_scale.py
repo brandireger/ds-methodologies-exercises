@@ -3,7 +3,7 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler, QuantileTransformer, PowerTransformer, RobustScaler, MinMaxScaler
 
-def split_my_data(X, y, train_pct):
+def split_my_data_xy(X, y, train_pct):
     '''
     Takes in X, y, train_pct and returns 4 items:
     X_train, X_test, y_train, y_test
@@ -12,6 +12,16 @@ def split_my_data(X, y, train_pct):
     X_train, X_test, y_train, y_test = split_my_data(X, y, train_pct)
     '''
     return train_test_split(X, y, train_size = train_pct, random_state = 294)
+
+def split_my_data(df, train_pct):
+    '''
+    Takes in df, train_pct and returns 2 items:
+    train, test
+
+    When using this function, in order to have usable datasets, be sure to call it thusly:
+    train, test = split_my_data(df, train_pct)
+    '''
+    return train_test_split(df, train_size = train_pct, random_state = 294)
 
 def standard_scaler(train, test):
     '''
@@ -25,9 +35,9 @@ def standard_scaler(train, test):
     test_scaled_std = pd.DataFrame(std_scaler.transform(test), columns=test.columns.values).set_index([test.index.values])
     return std_scaler, train_scaled_std, test_scaled_std
 
-def scale_inverse(train_scaled_std, test_scaled_std):
+def scale_inverse(std_scaler, train_scaled_std, test_scaled_std):
     '''
-    uses the datasets created by the standard_scaler function
+    Takes in the scaler and datasets created by the standard_scaler function
     returns scaled data to it's original values
     '''
     train_unscaled = pd.DataFrame(std_scaler.inverse_transform(train_scaled_std), columns=train_scaled_std.columns.values).set_index([train_scaled_std.index.values])
