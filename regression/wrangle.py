@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 from env import get_db_url
 
@@ -16,3 +17,9 @@ def wrangle_telco():
     tc_df.total_charges = tc_df.total_charges.str.replace(' ', '0').astype(float)
     tc_df = tc_df.set_index('customer_id')
     return tc_df
+
+def wrangle_grades():
+    grades = pd.read_csv("student_grades.csv")
+    grades.replace(r'^\s*$', np.nan, regex=True, inplace=True)
+    df = grades.dropna().astype('int')
+    return df

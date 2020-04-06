@@ -1,8 +1,7 @@
 import pandas as pd
 import numpy as np
 import seaborn as sns
-import matplotlib.pyplot as plt
-%matplotlib inline
+
 from statsmodels.formula.api import ols
 from math import sqrt
 from scipy import stats
@@ -56,7 +55,7 @@ def better_than_baseline(y, yhat):
     else:
         return False
     
- def model_significance(ols_model):
+def model_significance(ols_model):
     """
     Takes in the ols_model created by statsmodels.formula.api
     Returns R^2 and p-value
