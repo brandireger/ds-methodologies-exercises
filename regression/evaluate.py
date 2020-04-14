@@ -29,7 +29,7 @@ def regression_errors(y, yhat):
 
 def baseline_mean_errors(y):
     """
-    Takes in one column: the variable being predicted, and the dataframe containing the column
+    Takes in one column: the variable being predicted
     Returns 3 baseline values: sum of squared errors (SSE), mean squared error (MSE),
     root mean squared error (RMSE)
     """
@@ -42,7 +42,7 @@ def baseline_mean_errors(y):
 
 def better_than_baseline(y, yhat):
     """
-    Takes in two columns and their dataframe: y is the variable being predicted, yhat is the predictions
+    Takes in two columns: y is the variable being predicted, yhat is the predictions
     Returns True if the model performs better than the baseline model (baseline model is the mean of y)
     Returns False if not
     """
