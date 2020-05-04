@@ -32,7 +32,7 @@ WHERE  prop.latitude IS NOT NULL
 """
 
 
-def get_data_from_sql(sql):
+def get_zillow(sql):
     url = get_db_url('zillow')
     zillow_df = pd.read_sql(sql, url, index_col='id')
     return zillow_df

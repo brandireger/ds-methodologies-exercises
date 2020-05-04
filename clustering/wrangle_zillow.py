@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import MinMaxScaler
 
 def missing_rows(df):
     new_df = pd.DataFrame(df.isna().sum())
@@ -26,13 +27,36 @@ def remove_columns(df, cols_to_remove):
     df = df.drop(columns=cols_to_remove)
     return df
 
+def numeric_to_object(df, num_cols):
+    """
+    Takes in a dataframe and a list of the columns to be transformed. 
+    Changes the type of each column in the list to object type.
+    """
+    for col in num_cols:
+        df[col] = df[col].astype('object')
+    return df
+
+def numeric_to_int(df, num_cols):
+    """
+    Takes in a dataframe and a list of the columns to be transformed. 
+    Changes the type of each column in the list to integer type.
+    """
+    for col in num_cols:
+        df[col] = df[col].astype('int')
+    return df
+
 def wrangle_zillow():
     df = pd.read_csv('zillow.csv', index_col='id')
+    # drop extra column that comes in from csv files
     df = df.drop(columns='Unnamed: 0')
-    # only properties that meet single use criteria
-    single_use = [260, 261, 262, 279]
+    
+    # Restrict df to only properties that meet single use criteria
+    single_use = [261, 262, 263, 264, 266, 268, 273, 276, 279]
     df = df[df.propertylandusetypeid.isin(single_use)]
+    
+    # Restrict df to only those properties with at least 1 bath & bed
     df = df[(df.bedroomcnt > 0) & (df.bathroomcnt > 0)]
+    
     # drop unnecessary columns
     df = remove_columns(df, ['architecturalstyletypeid',
                              'buildingclasstypeid',
@@ -62,11 +86,13 @@ def wrangle_zillow():
                              'calculatedfinishedsquarefeet', 
                              'regionidneighborhood',
                              'regionidcity',
-                             'regionidzip',
                              'propertylandusetypeid',
                              'rawcensustractandblock',
-                             'propertylandusedesc'
-                            ])
+                             'propertylandusedesc'])
+
+    # Replace Y in taxdelinquencyflag with 1
+    df.taxdelinquencyflag = np.where(df.taxdelinquencyflag == 'Y', 1, 0)
+    
     # fill nulls with 0 
     df.airconditioningtypeid.fillna(0, inplace=True)
     df.basementsqft.fillna(0, inplace=True)
@@ -78,48 +104,56 @@ def wrangle_zillow():
     df.lotsizesquarefeet.fillna(0, inplace=True)
     df.poolcnt.fillna(0, inplace=True)
     df.poolsizesum.fillna(0, inplace=True)
-    df.taxdelinquencyflag.fillna(0, inplace=True)
     df.taxdelinquencyyear.fillna(0, inplace=True)
+    
     # For heating type, None = 13
     df.heatingorsystemtypeid.fillna(13, inplace=True)
+    
     # Fill nulls with most common value
     df.numberofstories.fillna(1, inplace=True)
     df.unitcnt.fillna(1, inplace=True)
-    df.buildingqualitytypeid.fillna(6, inplace=True)
     df.yearbuilt.fillna(1955, inplace=True)
+    
+    # This piece bothers me: I'd rather fill in with a range of values based on the other features
+    # Do more exploration on this feature
+    df.buildingqualitytypeid.fillna(6, inplace=True)
+    
     # Drop rows with null values in certain columns
     df = df.dropna(subset=['structuretaxvaluedollarcnt',
                            'taxvaluedollarcnt',
-                           'landtaxvaluedollarcnt',
                            'taxamount',
                            'censustractandblock',
+                           'regionidzip',
                            'finishedsquarefeet12'])
+    
     # set type for each column
-    df = df.astype({'airconditioningtypeid': int,
-                    'basementsqft': int,
-                    'bedroomcnt': int,
-                    'buildingqualitytypeid': int,
-                    'decktypeid': int,
-                    'finishedsquarefeet12': int,
-                    'fips': int,
-                    'fireplacecnt': int,
-                    'garagecarcnt': int,
-                    'garagetotalsqft': int,
-                    'hashottuborspa': int,
-                    'heatingorsystemtypeid': int,
-                    'lotsizesquarefeet': int,
-                    'poolcnt': int,
-                    'poolsizesum': int,
-                    'propertycountylandusecode': str,
-                    'regionidcounty': int,
-                    'roomcnt': int,
-                    'unitcnt': int,
-                    'yearbuilt': int,
-                    'numberofstories': int,
-                    'assessmentyear': int,
-                    'taxdelinquencyflag': str,
-                    'taxdelinquencyyear': int,
-                    'censustractandblock': str})
+    df = numeric_to_object(df, ['fips',
+                                'propertycountylandusecode',
+                                'regionidcounty',
+                                'regionidzip',
+                                'censustractandblock'])
+    df = numeric_to_int(df, ['airconditioningtypeid',
+                             'basementsqft',
+                             'bedroomcnt',
+                             'buildingqualitytypeid',
+                             'decktypeid',
+                             'finishedsquarefeet12',
+                             'fireplacecnt',
+                             'garagecarcnt',
+                             'garagetotalsqft',
+                             'hashottuborspa',
+                             'heatingorsystemtypeid',
+                             'lotsizesquarefeet',
+                             'poolcnt',
+                             'poolsizesum',
+                             'roomcnt',
+                             'unitcnt',
+                             'yearbuilt',
+                             'numberofstories',
+                             'assessmentyear',
+                             'taxdelinquencyflag',
+                             'taxdelinquencyyear'])
+
     # Add column for counties
     df['county'] = np.where(df.fips == 6037, 'Los_Angeles',
                            np.where(df.fips == 6059, 'Orange', 
@@ -135,3 +169,18 @@ def split_my_data(df, train_pct):
     train, test = split_my_data(df, train_pct)
     '''
     return train_test_split(df, train_size = train_pct, random_state = 294)
+
+def min_max_scaler(train, test):
+    '''
+    Uses the train & test datasets created by the split_my_data function
+    Returns 3 items: mm_scaler, train_scaled_mm, test_scaled_mm
+
+    This is a linear transformation. Values will lie between 0 and 1
+    '''
+    num_vars = list(train.select_dtypes('number').columns)
+    scaler = MinMaxScaler(copy=True, feature_range=(0,1))
+    train[num_vars] = scaler.fit_transform(train[num_vars])
+    test[num_vars] = scaler.transform(test[num_vars])
+    return scaler, train, test
+
+
