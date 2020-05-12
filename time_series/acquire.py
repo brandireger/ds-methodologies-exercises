@@ -56,8 +56,8 @@ def get_German_csv():
 
 def read_german():
     if os.path.exists('German_power.csv'):
-        df = pd.read_csv('German_power.csv', index_col=0)
+        df = pd.read_csv('German_power.csv')
     else:
         get_German_csv()
-        df = pd.read_csv('German_power.csv', index_col=0)
+        df = pd.read_csv('German_power.csv')
     return df
