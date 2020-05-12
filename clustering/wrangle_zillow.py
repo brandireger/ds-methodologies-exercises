@@ -83,12 +83,14 @@ def wrangle_zillow():
                              'typeconstructiontypeid',
                              'storytypeid',
                              'propertyzoningdesc', 
-                             'calculatedfinishedsquarefeet', 
+                            'calculatedfinishedsquarefeet', 
                              'regionidneighborhood',
                              'regionidcity',
+                             'regionidcounty',
                              'propertylandusetypeid',
                              'rawcensustractandblock',
-                             'propertylandusedesc'])
+                             'propertylandusedesc',
+                            'assessmentyear'])
 
     # Replace Y in taxdelinquencyflag with 1
     df.taxdelinquencyflag = np.where(df.taxdelinquencyflag == 'Y', 1, 0)
